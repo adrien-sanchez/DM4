@@ -58,3 +58,11 @@ let reduction_moitie_ligne array =
       i := !i + 2;
     done;
     final;;
+
+let reduction_moitie_image image =
+
+  let w, h = dim image in
+
+  for (i = 0) to (h - 1) do
+    image.(i) <- reduction_moitie_ligne image.(i)
+  done;
