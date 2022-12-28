@@ -14,6 +14,14 @@ let load_matrix (name:string) =
   in
   Array.map (Array.map graylevel) gimg;;
 
+(*https://stackoverflow.com/questions/9061421/running-time-in-ocaml*)
+
+let time f x =
+  let t = Sys.time() in
+  let fx = f x in
+  Printf.printf "Execution time: %fs\n" (Sys.time() -. t);
+  fx
+
 (*Q.1*)
 
 let seuil threshold image =
@@ -225,4 +233,24 @@ let meilleure_colonne e =
       index := j; buffer := !sum;
   done;
   !index
+;;
+
+(*Q.11*)
+
+let reduction_meilleure_colonne image =
+
+  let energy = energie image in
+  let colonne = meilleure_colonne energy in
+
+  for i=0 to (h-1) do
+    image.(i) <- enlever (image.(i) meilleure_colonne);
+  done;
+
+(*Q.12*)
+
+let itere_meilleure_colonne image n =
+  for (i=0) to n do
+    reduction_meilleure_colonne image;
+  done;
+image;
 ;;
