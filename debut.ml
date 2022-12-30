@@ -2,6 +2,8 @@
   Les entiers sont censés être entre 0 et 255
   uint8_t serait d'ailleurs mieux que int
 *)
+
+(*ocamlfind ocamlc -o test -package graphics -package unix -package camlimages.png -package camlimages.graphics -linkpkg debut.ml*)
 type img = int array array;;
 
 (*Q0 O(1)*)
@@ -77,9 +79,133 @@ let negative (mat:img):img =
   done;
   newmat;;
 
+  let seuil threshold image =
 
-(*lance l'affichage à partir de la ligne de commande et de la fonction
-   appliquée à la matrice*)
+    let w, h = dim image in
+    let final = Array.make_matrix w h 0 in
+  
+    for j = 0 to (w - 1) do
+      for i = 0 to (h - 1) do
+        if (image.(i).(j) > threshold) then final.(j).(i) <- 255 
+        else final.(j).(i) <- 0;(*Printf.printf "i:%d, j:%d"i j *)
+      done;
+    done;(*358 478*)
+    
+    final;;
+    let symh image =
+  
+      let w, h = dim image in
+      let final = Array.make_matrix h w 0 in
+      
+      for i = (h-1) downto 0 do
+        for j = (w-1) downto 0 do
+     final.((h-1)-i).(j) <- image.(i).(j) (*Printf.printf "i:%d, j:%d" wf hf *)
+        done;
+      done;(*690 460*)
+      final
+    ;;
+    let symv image =
+
+      let w, h = dim image in
+      let final = Array.make_matrix h w 0 in
+    
+      for i = 0 to (h - 1) do
+        for j = (w-1) downto 0 do  
+          final.(i).((w-1)-j) <- image.(i).(j)
+        done;
+      done; 
+      final
+    ;;
+    (*Q 2*)
+    let reduction_moitie_ligne array =
+    
+    let length = ((Array.length array)/2) in
+    let final = Array.make length 0 in
+      
+    let i = ref 0 in
+      
+    while (!i <= length) do 
+      final.((!i)/2) <- ((array.(!i) + array.(!i + 1))/2);
+      i := !i + 2;
+    done;
+    final
+  ;;
+  let reduction_moitie_image image =
+
+    let w, h = dim image in
+  
+    for i = 0 to (h - 1) do
+      image.(i) <- reduction_moitie_ligne image.(i)
+    done;
+    
+  ;;
+  let getWestLevel i j image =
+    if(i-1 < 0) then image.(i).(j)
+    else image.(i-1).(j)
+  ;;
+  
+  let getNorthLevel i j image =
+    let w_max, h_max = dim image in
+    if(j+1 > h_max-1) then image.(i).(j)
+    else image.(i).(j+1)
+  ;;
+  
+  let getEastLevel i j image =
+    let w_max, h_max = dim image in
+    if(i+1 > w_max-1) then image.(i).(j)
+    else image.(i+1).(j)
+  ;;
+  
+  let getSouthLevel i j image =
+    if(j-1 < 0) then image.(i).(j)
+    else image.(i).(j-1)
+  ;;
+  
+  let getPixelEnergy i j image =
+    (abs_float(((getEastLevel i j image) -. (getWestLevel i j image))/.2.0) +. (abs_float(((getNorthLevel i j image) -. (getSouthLevel i j image))/.2.0)))
+  ;;
+  let energie image = (*probléme car le prgm considére que image est un int array array donc incompatible*)
+    let w, h = dim image in
+    let energy = Array.make_matrix w h 0.0 in
+  
+    for i = 0 to (h - 1) do
+      for j = 0 to (w - 1) do
+        energy.(i).(j) <- (getPixelEnergy i j image);
+      done;
+    done;
+    energy
+  ;;  
+  (*Q 6*)
+  let enlever array i = 
+
+    let length = Array.length array in
+    if(i > length-1 || i < 0) then array
+    else
+      let final = (Array.make (length-1) 0) in 
+  
+      for k = 0 to (length-1) do 
+        if(k < i) then final.(k) <- array.(k)
+        else if(k > i) then final.(k-1) <- array.(k)
+      done;
+      final
+  ;;
+  (*Q 7*)
+  let indice_min array =
+  
+    let length = Array.length array in
+    if(length == 0) then 0
+    else
+      let current = ref 0 in
+    
+      for i = 0 to (length-1) do 
+        if(array.(i) < array.(!current)) then
+          current := i
+      done;
+      !current
+  ;;
+  
 let () =
-  display  Sys.argv.(1) negative;;
+  
+  display  Sys.argv.(1) symv;;
+ 
 
